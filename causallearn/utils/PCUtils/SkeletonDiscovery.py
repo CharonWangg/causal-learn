@@ -17,6 +17,7 @@ def skeleton_discovery(
     data: ndarray, 
     alpha: float, 
     indep_test: CIT,
+    depth: int = -1,
     stable: bool = True,
     background_knowledge: BackgroundKnowledge | None = None, 
     verbose: bool = False,
@@ -38,6 +39,7 @@ def skeleton_discovery(
            - gsq: G-squared conditional independence test
            - mv_fisherz: Missing-value Fishers'Z conditional independence test
            - kci: Kernel-based conditional independence test
+    depth : int, the maximum depth of conditioning sets to be considered. If depth is -1, then all conditioning sets are considered.
     stable : run stabilized skeleton discovery if True (default = True)
     background_knowledge : background knowledge
     verbose : True iff verbose output should be printed.
@@ -59,9 +61,15 @@ def skeleton_discovery(
     cg = CausalGraph(no_of_var, node_names)
     cg.set_ind_test(indep_test)
 
+    if depth == -1:
+        max_depth = np.inf
+    else:
+        max_depth = depth
+
+    # iterate over depth
     depth = -1
     pbar = tqdm(total=no_of_var) if show_progress else None
-    while cg.max_degree() - 1 > depth:
+    while cg.max_degree() - 1 > depth and depth < max_depth:
         depth += 1
         edge_removal = []
         if show_progress:

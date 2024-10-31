@@ -13,7 +13,7 @@ from causallearn.utils.cit import *
 from causallearn.search.ConstraintBased.PC import get_parent_missingness_pairs, skeleton_correction
 
 
-def cdnod(data: ndarray, c_indx: ndarray, alpha: float=0.05, indep_test: str=fisherz, stable: bool=True,
+def cdnod(data: ndarray, c_indx: ndarray, alpha: float=0.05, indep_test: str=fisherz, depth: int=-1, stable: bool=True,
           uc_rule: int=0, uc_priority: int=2, mvcdnod: bool=False, correction_name: str='MV_Crtn_Fisher_Z',
           background_knowledge: Optional[BackgroundKnowledge]=None, verbose: bool=False,
           show_progress: bool = True, **kwargs) -> CausalGraph:
@@ -35,16 +35,16 @@ def cdnod(data: ndarray, c_indx: ndarray, alpha: float=0.05, indep_test: str=fis
     # augment the variable set by involving c_indx to capture the distribution shift
     data_aug = np.concatenate((data, c_indx), axis=1)
     if mvcdnod:
-        return mvcdnod_alg(data=data_aug, alpha=alpha, indep_test=indep_test, correction_name=correction_name,
+        return mvcdnod_alg(data=data_aug, alpha=alpha, indep_test=indep_test, depth=depth, correction_name=correction_name,
                            stable=stable, uc_rule=uc_rule, uc_priority=uc_priority, verbose=verbose,
                            show_progress=show_progress, **kwargs)
     else:
-        return cdnod_alg(data=data_aug, alpha=alpha, indep_test=indep_test, stable=stable, uc_rule=uc_rule,
+        return cdnod_alg(data=data_aug, alpha=alpha, indep_test=indep_test, depth=depth, stable=stable, uc_rule=uc_rule,
                          uc_priority=uc_priority, background_knowledge=background_knowledge, verbose=verbose,
                          show_progress=show_progress, **kwargs)
 
 
-def cdnod_alg(data: ndarray, alpha: float, indep_test: str, stable: bool, uc_rule: int, uc_priority: int,
+def cdnod_alg(data: ndarray, alpha: float, indep_test: str, depth: int, stable: bool, uc_rule: int, uc_priority: int,
               background_knowledge: Optional[BackgroundKnowledge] = None, verbose: bool = False,
               show_progress: bool = True, **kwargs) -> CausalGraph:
     """
@@ -86,7 +86,7 @@ def cdnod_alg(data: ndarray, alpha: float, indep_test: str, stable: bool, uc_rul
     """
     start = time.time()
     indep_test = CIT(data, indep_test, **kwargs)
-    cg_1 = SkeletonDiscovery.skeleton_discovery(data, alpha, indep_test, stable)
+    cg_1 = SkeletonDiscovery.skeleton_discovery(data, alpha, indep_test, stable, depth=depth)
 
     # orient the direction from c_indx to X, if there is an edge between c_indx and X
     c_indx_id = data.shape[1] - 1
@@ -126,7 +126,7 @@ def cdnod_alg(data: ndarray, alpha: float, indep_test: str, stable: bool, uc_rul
     return cg
 
 
-def mvcdnod_alg(data: ndarray, alpha: float, indep_test: str, correction_name: str, stable: bool, uc_rule: int,
+def mvcdnod_alg(data: ndarray, alpha: float, indep_test: str, depth: int, correction_name: str, stable: bool, uc_rule: int,
                 uc_priority: int, verbose: bool, show_progress: bool, **kwargs) -> CausalGraph:
     """
     :param data: data set (numpy ndarray)
@@ -163,7 +163,7 @@ def mvcdnod_alg(data: ndarray, alpha: float, indep_test: str, correction_name: s
 
     ## Step 2:
     ## a) Run PC algorithm with the 1st step skeleton;
-    cg_pre = SkeletonDiscovery.skeleton_discovery(data, alpha, indep_test, stable, verbose=verbose,
+    cg_pre = SkeletonDiscovery.skeleton_discovery(data, alpha, indep_test, depth=depth, stable=stable, verbose=verbose,
                                                   show_progress=show_progress)
     cg_pre.to_nx_skeleton()
     # print('Finish skeleton search with test-wise deletion.')

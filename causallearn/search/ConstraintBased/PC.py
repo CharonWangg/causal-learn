@@ -21,6 +21,7 @@ def pc(
     data: ndarray, 
     alpha=0.05, 
     indep_test=fisherz, 
+    depth: int = -1,
     stable: bool = True, 
     uc_rule: int = 0, 
     uc_priority: int = 2,
@@ -38,12 +39,12 @@ def pc(
     if mvpc:  # missing value PC
         if indep_test == fisherz:
             indep_test = mv_fisherz
-        return mvpc_alg(data=data, node_names=node_names, alpha=alpha, indep_test=indep_test, correction_name=correction_name, stable=stable,
-                        uc_rule=uc_rule, uc_priority=uc_priority, background_knowledge=background_knowledge,
+        return mvpc_alg(data=data, node_names=node_names, alpha=alpha, indep_test=indep_test, depth=depth, correction_name=correction_name, stable=stable,
+                        uc_rule=uc_rule, uc_priority=uc_priority, background_knowledge=background_knowledge, 
                         verbose=verbose,
                         show_progress=show_progress, **kwargs)
     else:
-        return pc_alg(data=data, node_names=node_names, alpha=alpha, indep_test=indep_test, stable=stable, uc_rule=uc_rule,
+        return pc_alg(data=data, node_names=node_names, alpha=alpha, indep_test=indep_test, depth=depth, stable=stable, uc_rule=uc_rule,
                       uc_priority=uc_priority, background_knowledge=background_knowledge, verbose=verbose,
                       show_progress=show_progress, **kwargs)
 
@@ -56,6 +57,7 @@ def pc_alg(
     stable: bool,
     uc_rule: int,
     uc_priority: int,
+    depth: int = -1,
     background_knowledge: BackgroundKnowledge | None = None,
     verbose: bool = False,
     show_progress: bool = True,
@@ -87,6 +89,7 @@ def pc_alg(
            2. prioritize existing colliders
            3. prioritize stronger colliders
            4. prioritize stronger* colliers
+    depth: int, the depth of the skeleton search
     background_knowledge : background knowledge
     verbose : True iff verbose output should be printed.
     show_progress : True iff the algorithm progress should be show in console.
@@ -101,7 +104,7 @@ def pc_alg(
 
     start = time.time()
     indep_test = CIT(data, indep_test, **kwargs)
-    cg_1 = SkeletonDiscovery.skeleton_discovery(data, alpha, indep_test, stable,
+    cg_1 = SkeletonDiscovery.skeleton_discovery(data, alpha, indep_test, stable, depth=depth,
                                                 background_knowledge=background_knowledge, verbose=verbose,
                                                 show_progress=show_progress, node_names=node_names)
 
@@ -143,6 +146,7 @@ def mvpc_alg(
     node_names: List[str] | None,
     alpha: float,
     indep_test: str,
+    depth: int,
     correction_name: str,
     stable: bool,
     uc_rule: int,
@@ -202,8 +206,8 @@ def mvpc_alg(
 
     ## Step 2:
     ## a) Run PC algorithm with the 1st step skeleton;
-    cg_pre = SkeletonDiscovery.skeleton_discovery(data, alpha, indep_test, stable,
-                                                  background_knowledge=background_knowledge,
+    cg_pre = SkeletonDiscovery.skeleton_discovery(data, alpha, indep_test, stable, depth=depth,
+                                                  background_knowledge=background_knowledge, 
                                                   verbose=verbose, show_progress=show_progress, node_names=node_names)
     if background_knowledge is not None:
         orient_by_background_knowledge(cg_pre, background_knowledge)
