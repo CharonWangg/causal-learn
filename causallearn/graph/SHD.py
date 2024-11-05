@@ -19,7 +19,7 @@ class SHD:
         """
         truth_node_map = {node.get_name(): node_id for node, node_id in truth.node_map.items()}
         est_node_map = {node.get_name(): node_id for node, node_id in est.node_map.items()}
-        assert set(truth_node_map.keys()) == set(est_node_map.keys()), "The two graphs have different sets of node names."
+        assert set(truth_node_map.keys()) == set(est_node_map.keys()), f"The two graphs have different sets of node names, the truth graph has {truth_node_map.keys()} and the estimated graph has {est_node_map.keys()}."
 
         self.__SHD: int = 0
         for node_i_name, truth_node_i_id in truth_node_map.items():

@@ -169,8 +169,8 @@ def remove_effect(X, remove_features):
 
 def make_dot(adjacency_matrix, labels=None, lower_limit=0.01,
              prediction_feature_indices=None, prediction_target_label='Y(pred)',
-             prediction_line_color='red',
-             prediction_coefs=None, prediction_feature_importance=None, ignore_shape=False):
+             prediction_line_color='red', 
+             prediction_coefs=None, prediction_feature_importance=None, ignore_shape=False, pos=None):
     """Directed graph source code in the DOT language with specified adjacency matrix.
 
     Parameters
@@ -194,6 +194,8 @@ def make_dot(adjacency_matrix, labels=None, lower_limit=0.01,
         Feature importance to use for prediction's graph.
     ignore_shape : boolean, optional (default=False)
         Ignore checking the shape of adjaceny_matrix or not.
+    pos : dict, optional (default=None)
+        Position of nodes.
 
     Returns
     -------
@@ -217,8 +219,10 @@ def make_dot(adjacency_matrix, labels=None, lower_limit=0.01,
                 len(prediction_feature_indices) != len(prediction_feature_importance)):
             raise ValueError(
                 "Length of 'prediction_feature_importance' does not match length of 'prediction_feature_indices'")
-
-    d = graphviz.Digraph(engine='dot')
+    if pos is not None:
+        d = graphviz.Digraph(engine='neato', graph_attr={'overlap': 'false', 'splines': 'true', 'K': '0.5'})
+    else:
+        d = graphviz.Digraph(engine='dot')
 
     # nodes
     names = labels if labels else [f'x{i}' for i in range(len(B))]
@@ -272,6 +276,11 @@ def make_dot(adjacency_matrix, labels=None, lower_limit=0.01,
             s.node(names[node])
     for to, from_ in zip(unk_order[0], unk_order[1]):
         d.edge(names[from_], names[to], dir="both")
+
+    # fix the position of nodes
+    if pos is not None:
+        for node in names:
+            d.node(node, pos=f"{pos[node][0]},{pos[node][1]}!")
 
     return d
 
