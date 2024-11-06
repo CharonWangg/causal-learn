@@ -280,7 +280,7 @@ def make_dot(adjacency_matrix, labels=None, lower_limit=0.01,
     # fix the position of nodes
     if pos is not None:
         for node in names:
-            d.node(node, pos=f"{pos[node][0]},{pos[node][1]}!")
+            d.node(node, height=".5", width=".5", pos=f"{pos[node][0]*10},{pos[node][1]*10}!")
 
     return d
 
